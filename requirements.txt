@@ -1,0 +1,13 @@
+argon2-cffi
+fastapi[all]
+uvicorn
+sqlalchemy
+pydantic
+alembic
+passlib[argon2]
+python-jose[cryptography] 
+fastapi-users
+psycopg2-binary
+python-dotenv
+httpx
+requests

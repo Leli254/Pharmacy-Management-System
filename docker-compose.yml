@@ -1,0 +1,60 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pharmacy-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/app/app
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - pharmacy-net
+
+  frontend:
+    build: ./frontend
+    container_name: pharmacy-frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    environment:
+      VITE_BACKEND_URL: "http://backend:8000"
+    command: ["npm", "run", "dev", "--", "--host"]
+    restart: unless-stopped
+    networks:
+      - pharmacy-net
+
+  db:
+    image: postgres:16-alpine
+    container_name: pharmacy-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: pharmacy
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - pharmacy-net
+
+volumes:
+  postgres_data:
+
+networks:
+  pharmacy-net:
+    driver: bridge
