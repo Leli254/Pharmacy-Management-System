@@ -9,6 +9,7 @@ __pycache__/
 *.sqlite3
 pyvenv.cfg
 
+
 # Virtual environments
 venv/
 .venv/
@@ -79,3 +80,9 @@ logs/
 *.pem
 *.key
 *.crt
+
+
+# C-extension build artifacts
+*.so
+*.dll
+*.dylib
