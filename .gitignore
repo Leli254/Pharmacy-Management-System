@@ -7,6 +7,7 @@ __pycache__/
 *.pyd
 *.log
 *.sqlite3
+pyvenv.cfg
 
 # Virtual environments
 venv/
