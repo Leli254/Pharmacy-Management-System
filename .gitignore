@@ -23,6 +23,7 @@ ENV/
 .ruff_cache/
 .coverage
 htmlcov/
+include/site/python3.12/greenlet
 
 # =========================
 # FastAPI / Backend
