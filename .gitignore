@@ -30,8 +30,6 @@ alembic/versions/*.pyc
 # Environment variables
 .env
 .env.*
-!.env.example
-
 # =========================
 # Node / React / Frontend
 # =========================
