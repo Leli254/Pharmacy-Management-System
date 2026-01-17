@@ -1,7 +1,7 @@
 # Pharmacy Inventory Tracker
 
 A modern, offline-first pharmacy inventory management system built with **FastAPI**, **PostgreSQL**, and **React (Vite)**.  
-Designed for small to medium pharmacies, with a focus on reliability, performance, and simplicity.
+Designed for pharmacies, with a focus on reliability, performance, and ease of use.
 
 ---
 
