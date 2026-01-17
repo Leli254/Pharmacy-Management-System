@@ -1,143 +1,165 @@
-Security Policy
-Supported Versions
+# Security Policy
+---
+
+## Supported Versions
 
 The following versions of Pharmacy Inventory Tracker are currently supported with security updates:
 
-Version	Supported
-main	✅ Yes
-Older releases	❌ No
+**Version	Supported**
+- main	✅ Yes
+- Older releases	❌ No
 
-Only the latest version on the main branch receives security patches.
+Only the latest version on the ```main``` branch receives security patches.
 
-Reporting a Vulnerability
+---
 
-If you discover a security vulnerability, do not open a public GitHub issue.
+## Reporting a Vulnerability
+
+If you discover a security vulnerability, **do not open a public GitHub issue**.
 
 Instead, report it responsibly using one of the following methods:
 
-🔐 Preferred: GitHub Security Advisories
+###### 🔐 Preferred: GitHub Security Advisories
 
-Go to the repository on GitHub
+1. Go to the repository on GitHub
 
-Click Security → Report a vulnerability
+2. Click Security → Report a vulnerability
 
-Submit the report privately
+3. Submit the report privately
 
-📧 Alternative: Email
+###### 📧 Alternative: Email
 
 If GitHub Security Advisories are unavailable, email:
 
-security@yourdomain.com
+> lelisoftware[@]gmail.com
 
+---
 
-(Replace with your actual security contact email.)
-
-What to Include in a Report
+## What to Include in a Report
 
 Please include as much of the following as possible:
 
-Description of the vulnerability
+- Description of the vulnerability
 
-Steps to reproduce
+- Steps to reproduce
 
-Affected endpoints, components, or files
+- Affected endpoints, components, or files
 
-Potential impact
+- Potential impact
 
-Proof of concept (if available)
+- Proof of concept (if available)
 
-Suggested remediation (optional)
+- Suggested remediation (optional)
 
 Clear and detailed reports help us respond faster.
 
-Response Timeline
+---
+
+### Response Timeline
 
 We aim to follow this timeline:
 
-Stage	Target Time
-Acknowledgement	Within 48 hours
-Initial Assessment	Within 72 hours
-Fix or Mitigation	As soon as possible
-Public Disclosure	After patch release
+``` text
+
+| Stage               | Target Time              |
+|---------------------|--------------------------|
+| Acknowledgement     | Within 48 hours          |
+| Initial Assessment  | Within 72 hours          |
+| Fix or Mitigation   | As soon as possible      |
+| Public Disclosure   | After patch release      |
+
+```
 
 Timelines may vary depending on severity and complexity.
 
-Security Scope
-In Scope
+---
 
-Authentication & authorization
+## Security Scope
 
-JWT handling
+**In Scope**
 
-Password hashing
+- Authentication & authorization
 
-API endpoints
+- JWT handling
 
-Docker configuration
+- Password hashing
 
-Dependency vulnerabilities
+- API endpoints
 
-Database access control
+- Docker configuration
 
-CORS configuration
+- Dependency vulnerabilities
 
-Out of Scope
+- Database access control
 
-Denial of service attacks
+- CORS configuration
 
-Social engineering
+**Out of Scope**
 
-Physical security
+- Denial of service attacks
 
-Third-party service vulnerabilities unless directly caused by this codebase
+- Social engineering
 
-Security Best Practices Used
+- Physical security
+
+- Third-party service vulnerabilities, unless directly caused by this codebase
+
+---
+
+### Security Best Practices Used
 
 This project follows these practices:
 
-Argon2 password hashing
+- Argon2 password hashing
 
-OAuth2 password flow
+- OAuth2 password flow
 
-JWT-based authentication
+- JWT-based authentication
 
-Protected API routes
+- Protected API routes
 
-CORS restrictions
+- CORS restrictions
 
-Environment variables for secrets
+- Environment variables for secrets
 
-Docker container isolation
+- Docker container isolation
 
-Dependency Security
+---
 
-Dependencies should be kept up to date
+## Dependency Security
 
-Known vulnerable dependencies should be upgraded promptly
+- Dependencies should be kept up to date
 
-Automated dependency scanning is encouraged (e.g. Dependabot)
+- Known vulnerable dependencies should be upgraded promptly
 
-Disclosure Policy
+- Automated dependency scanning is encouraged (e.g., Dependabot)
+
+---
+
+## Disclosure Policy
 
 We practice responsible disclosure:
 
-Vulnerabilities are fixed before public disclosure
+- Vulnerabilities are fixed before public disclosure
 
-Credit is given to reporters unless anonymity is requested
+- Credit is given to reporters unless anonymity is requested
 
-No legal action will be taken against good-faith researchers
+- No legal action will be taken against good-faith researchers
 
-Security Contact
+---
+
+## Security Contact
 
 For all security-related matters:
 
-security@yourdomain.com
+> lelisoftware[@]gmail.com
 
+---
 
-(Replace with a real address before publishing.)
-
-Thank You
+## Thank You
 
 We appreciate the efforts of security researchers and contributors who help keep this project safe.
 
 Your responsible disclosures help protect pharmacies and their data.
+
+---
