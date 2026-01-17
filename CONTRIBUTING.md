@@ -1,105 +1,129 @@
-Thank you for considering contributing to Pharmacy Inventory Tracker.
+Thank you for considering contributing to the Pharmacy Management System.
 Contributions of all kinds are welcome — bug reports, feature requests, documentation improvements, and code contributions.
 
 This document outlines the process and expectations for contributors.
 
-📌 Code of Conduct
+---
+
+## 📌 Code of Conduct
 
 By participating in this project, you agree to uphold a respectful, professional, and inclusive environment.
 
-Be respectful and constructive
+- Be respectful and constructive
 
-Assume good intentions
+- Assume good intentions
 
-No harassment, discrimination, or abusive language
+- No harassment, discrimination, or abusive language
 
 Serious or repeated violations may result in removal from the project.
 
-🧩 How You Can Contribute
+---
+
+## 🧩 How You Can Contribute
 
 You can contribute in several ways:
 
-🐞 Reporting bugs
+- 🐞 Reporting bugs
 
-💡 Proposing features or improvements
+- 💡 Proposing features or improvements
 
-🛠️ Fixing bugs
+- 🛠️ Fixing bugs
 
-📚 Improving documentation
+- 📚 Improving documentation
 
-🧪 Adding tests
+- 🧪 Adding tests
 
-🎨 Improving UI/UX
+- 🎨 Improving UI/UX
 
-🐞 Reporting Bugs
+## 🐞 Reporting Bugs
 
 Before opening a bug report:
 
-Ensure the issue has not already been reported.
+1. Ensure the issue has not already been reported.
 
-Reproduce the issue on the latest version.
+2. Reproduce the issue on the latest version.
 
 When submitting a bug report, include:
 
-Clear description of the problem
+- Clear description of the problem
 
-Steps to reproduce
+- Steps to reproduce
 
-Expected vs actual behavior
+- Expected vs actual behavior
 
-Logs or error messages (if applicable)
+- Logs or error messages (if applicable)
 
-Environment details (OS, browser, Docker version)
+- Environment details (OS, browser, Docker version)
 
-💡 Feature Requests
+---
+
+## 💡 Feature Requests
 
 Feature requests are welcome.
 
 Please include:
 
-The problem the feature solves
+- The problem the feature solves
 
-Proposed solution or behavior
+- Proposed solution or behavior
 
-Why it is useful for pharmacy operations
+- Why it is useful for pharmacy operations
 
-🛠️ Development Setup
-Prerequisites
+---
 
-Docker & Docker Compose
+## 🛠️ Development Setup
 
-Node.js (for frontend development)
+**Prerequisites**
 
-Python 3.12+
+- Docker & Docker Compose
 
-Git
+- Node.js (for frontend development)
 
-Clone the Repository
-git clone https://github.com/<your-username>/PharmacyTracker.git
-cd PharmacyTracker
+- Python 3.12+
 
-Environment Variables
+- Git
 
-Create a .env file from the example:
+---
 
-cp .env.example .env
+**Clone the Repository**
+
+```
+   git clone https://github.com/<your-username>/PharmacyTracker.git
+   cd PharmacyTracker
+```
+
+---
+
+**Environment Variables**
+
+Create a ```.env``` file from the example:
+
+```cp .env.example .env```
 
 
 Fill in the required values.
 
-⚠️ Never commit .env files
+> ⚠️ Never commit .env files
 
-Run the Project
+---
+
+**Run the Project**
+```
 docker compose up --build
+```
 
 
-Backend: http://localhost:8000
+- Backend: http://localhost:8000
 
-Frontend: http://localhost:5173
+- Frontend: http://localhost:5173
 
-API Docs: http://localhost:8000/docs
+- API Docs: http://localhost:8000/docs
 
-🧱 Project Structure
+---
+
+## 🧱 Project Structure
+
+```
 PharmacyTracker/
 ├── app/                # FastAPI backend
 ├── frontend/           # React frontend
@@ -107,110 +131,135 @@ PharmacyTracker/
 ├── README.md
 ├── CONTRIBUTING.md
 ├── LICENSE
+```
 
-🔐 Authentication Notes
+---
 
-Uses OAuth2 password flow
+## 🔐 Authentication Notes
 
-JWT tokens stored in localStorage
+- Uses OAuth2 password flow
 
-Protected routes require authentication
+- JWT tokens stored in localStorage
+
+- Protected routes require authentication
 
 Ensure your changes do not weaken authentication or security.
 
-🧪 Testing
+---
+
+## 🧪 Testing
 
 Before submitting a pull request:
 
-Ensure the app starts without errors
+- Ensure the app starts without errors
 
-Run backend tests if available
+- Run backend tests if available
 
-Verify frontend functionality manually
+- Verify frontend functionality manually
 
 Tests are expected for:
 
-New features
+- New features
 
-Bug fixes affecting core logic
+- Bug fixes affecting core logic
 
-🧼 Code Style & Standards
-Backend (FastAPI / Python)
+---
 
-Follow PEP 8
+## 🧼 Code Style & Standards
 
-Use type hints where possible
+**Backend (FastAPI / Python)**
 
-Keep functions small and focused
+- Follow PEP 8
 
-Use dependency injection properly
+- Use type hints where possible
 
-Frontend (React)
+- Keep functions small and focused
 
-Functional components only
+- Use dependency injection properly
 
-Avoid unnecessary state
+**Frontend (React)**
 
-Keep components small and reusable
+- Functional components only
 
-Prefer clarity over cleverness
+- Avoid unnecessary state
 
-🌱 Git Workflow
+- Keep components small and reusable
 
-Fork the repository
+- Prefer clarity over cleverness
 
-Create a feature branch:
+---
 
+## 🌱 Git Workflow
+
+1. Fork the repository
+
+2. Create a feature branch:
+
+```
 git checkout -b feature/short-description
+```
 
 
-Make your changes
+3. Make your changes
 
-Commit with clear messages:
+4. Commit with clear messages:
+   e.g
 
+```
 git commit -m "Add stock audit export feature"
+```
 
 
-Push to your fork
+5. Push to your fork
 
-Open a Pull Request
+6. Open a Pull Request
 
-📦 Pull Request Guidelines
+---
+
+## 📦 Pull Request Guidelines
 
 Your PR should:
 
-Have a clear title and description
+- Have a clear title and description
 
-Reference related issues (if any)
+- Reference related issues (if any)
 
-Be focused (avoid mixing unrelated changes)
+- Be focused (avoid mixing unrelated changes)
 
-Pass all checks
+- Pass all checks
 
-Not include generated files, secrets, or environment files
+- Not include generated files, secrets, or environment files
 
 Large PRs may be requested to be split.
 
-🚫 What Not to Commit
+---
 
-.env files
+### 🚫 What Not to Commit
 
-Virtual environments
+- .env files
 
-node_modules
+- Virtual environments
 
-site-packages
+- node_modules
 
-Database files (*.db)
+- site-packages
 
-Build artifacts
+- Database files (*.db)
 
-📜 License
+- Build artifacts
+
+---
+
+## 📜 License
 
 By contributing, you agree that your contributions will be licensed under the MIT License, the same license as the project.
 
-🙏 Thank You
+---
+
+## 🙏 Thank You
 
 Your contributions help improve pharmacy operations and healthcare tooling.
 
 If you have questions, open an issue or start a discussion — we’re happy to help.
+
+---
