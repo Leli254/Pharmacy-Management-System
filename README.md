@@ -196,6 +196,8 @@ MIT License
 **Michael Leli**
 Backend Engineer | Python | FastAPI | Systems Design
 
+---
+
 ### ✅ Status
 
 > 🚧 Active Development
