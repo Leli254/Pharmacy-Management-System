@@ -173,6 +173,16 @@ Recommended:
 
 ---
 
+## Dependency Management
+
+We use **Dependabot** to keep dependencies up-to-date:
+
+- Python (pip): weekly updates
+- npm (frontend): weekly updates with grouped minor/patch PRs
+- Docker & GitHub Actions: monthly updates
+
+---
+
 ## 🤝 Contributing
 
 1. Fork the repository
