@@ -1,0 +1,62 @@
+name: "CodeQL Security Scan"
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  schedule:
+    - cron: "0 3 * * 1"  # Every Monday at 03:00 UTC
+
+permissions:
+  contents: read          # Required for checkout & analysis
+  security-events: write  # Required to upload SARIF results
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ["python", "javascript"]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # if autobuild fails for the project structure.
+      - name: Setup Python (for backend)
+        if: matrix.language == 'python'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11" 
+
+      - name: Install Python dependencies
+        if: matrix.language == 'python'
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+
+      # -------------------------
+      # CodeQL Initialization
+      # -------------------------
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+
+      # -------------------------
+      # Autobuild 
+      # -------------------------
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      # -------------------------
+      # Perform Analysis & Upload
+      # -------------------------
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
