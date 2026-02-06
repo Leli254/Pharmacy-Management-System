@@ -94,3 +94,8 @@ logs/
 *.so
 *.dll
 *.dylib
+
+# database files/backups
+*.db
+*.sqlite
+backups/

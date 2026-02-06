@@ -11,13 +11,7 @@ from passlib.context import CryptContext
 
 from app.database.db import SessionLocal
 from app.models.user import User
-
-# -------------------------
-# Config
-# -------------------------
-SECRET_KEY = "+e6k60p6$cobkz+&o8igjy$k9!c@oixbnauuiqko0"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 1 day
+from app.core.config import settings
 
 # -------------------------
 # Hashing Contexts
@@ -78,15 +72,28 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
-    expire = datetime.now(
-        timezone.utc) + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+    expire = datetime.now(timezone.utc) + (
+        expires_delta or timedelta(
+            minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
     to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+    # Use .get_secret_value() because SECRET_KEY is a Pydantic SecretStr
+    return jwt.encode(
+        to_encode,
+        settings.SECRET_KEY.get_secret_value(),
+        algorithm=settings.ALGORITHM
+    )
 
 
 def decode_access_token(token: str) -> dict:
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        # Use .get_secret_value() because SECRET_KEY is a Pydantic SecretStr
+        payload = jwt.decode(
+            token,
+            settings.SECRET_KEY.get_secret_value(),
+            algorithms=[settings.ALGORITHM]
+        )
         return payload
     except JWTError:
         raise HTTPException(
@@ -134,7 +141,11 @@ def login_user(db: Session, username: str, password: str) -> str:
     user = authenticate_user(db, username, password)
     if not user:
         raise HTTPException(
-            status_code=401, detail="Incorrect username or password")
+            status_code=401,
+            detail="Incorrect username or password"
+        )
+
     access_token = create_access_token(
-        data={"sub": user.username, "id": user.id})
+        data={"sub": user.username, "id": user.id}
+    )
     return access_token

@@ -3,6 +3,7 @@ fastapi[all]
 uvicorn
 sqlalchemy
 pydantic
+pydantic-settings
 alembic
 passlib[argon2]
 python-jose[cryptography] 
