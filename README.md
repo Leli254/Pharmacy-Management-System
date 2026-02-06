@@ -41,25 +41,82 @@ Designed for pharmacies, with a focus on reliability, performance, and ease of u
 ## 📁 Project Structure
 
 ```text
-.
-├── app/                    # FastAPI backend
-│   ├── main.py
-│   ├── database/
-│   ├── models/
-│   ├── routers/
-│   ├── schemas/
-│   ├── utils/
-│   └── dependencies/
+PharmacyTracker/
+├── .github/
+│   ├── dependabot.yml
+│   └── workflows/
+│       └── codeql.yml
 │
-├── frontend/               # React (Vite) frontend
+├── app/
+│   ├── database/
+│   │   └── db.py                 # Database engine, session, Base
+│   │
+│   ├── dependencies/
+│   │   └── auth.py               # JWT auth dependencies
+|   ├── core/
+|   |   └── config.py             # Settings / config
+│   │
+│   ├── models/
+│   │   ├── dda.py                # DDA / controlled drugs models
+│   │   ├── sales.py              # Sales and checkout models
+│   │   ├── stock.py              # Drugs, batches, inventory models
+│   │   ├── stock_movement.py     # Stock movement / audit trail
+│   │   └── user.py               # User and role models
+│   │
+│   ├── routers/
+│   │   ├── admin_router.py       # Admin tools (DB dump / maintenance)
+│   │   ├── alerts_router.py      # Low stock, expiry, DDA alerts
+│   │   ├── audit_router.py       # Stock movement & audit history
+│   │   ├── auth_router.py        # Authentication & authorization
+│   │   ├── sales_router.py       # Sales & dispensing endpoints
+│   │   └── stock_router.py       # Stock & batch management
+│   │
+│   ├── schemas/
+│   │   └── user.py               # Pydantic schemas
+│   │
+│   ├── utils/
+│   │   ├── dda_pdf.py            # DDA register PDF generation
+│   │   ├── jwt.py                # JWT creation & verification
+│   │   ├── prescription_pdf.py  # Prescription book PDF
+│   │   ├── receipt_pdf.py        # Sales receipt generation
+│   │   ├── reports.py            # Sales reports (PDF / Excel)
+│   │   └── security.py           # Password hashing & verification
+│   │
+│   └── main.py                   # FastAPI application entry point
+│
+├── backups/                       # PostgreSQL database backups
+│
+├── frontend/
 │   ├── src/
+│   │   ├── api/
+│   │   │   └── api.js
+│   │   ├── components/
+│   │   │   ├── Dashboard.jsx
+│   │   │   └── Footer.jsx
+│   │   ├── Pages/                # All application pages
+│   │   ├── App.jsx
+│   │   ├── App.css
+│   │   ├── index.css
+│   │   └── main.jsx
+│   │
+│   ├── Dockerfile
 │   ├── index.html
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── README.md
 │   └── vite.config.js
 │
-├── docker-compose.yml
-├── Dockerfile
-├── .env.example
-└── README.md
+├── docker-compose.yml             # Full stack orchestration
+├── Dockerfile                     # Backend container
+├── requirements.txt               # Python dependencies
+│
+├── CODE_OF_CONDUCT.md
+├── CONTRIBUTING.md
+├── LICENSE
+├── README.md
+└── SECURITY.md
+
+
 ```
 ---
 
