@@ -1,7 +1,7 @@
 # =============================================================================
 # Stage 1: Builder (install deps with build tools)
 # =============================================================================
-FROM python:3.12-slim AS builder
+FROM python:3.14-slim AS builder
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
@@ -22,7 +22,7 @@ RUN pip install --no-cache-dir --upgrade pip \
 # =============================================================================
 # Stage 2: Runtime (minimal & secure)
 # =============================================================================
-FROM python:3.12-slim
+FROM python:3.14-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
