@@ -1,308 +1,199 @@
-// src/pages/ListStock.jsx
-import { useEffect, useState } from "react";
-import { apiGet, apiPost } from "../api/api";
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { apiGet } from "../api/api";
 
 function ListStock() {
-    const [stocks, setStocks] = useState([]);
-    const [filteredStocks, setFilteredStocks] = useState([]);
+    const [groupedStocks, setGroupedStocks] = useState({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [refreshKey, setRefreshKey] = useState(0);
     const [searchTerm, setSearchTerm] = useState("");
-    const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
-    const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 10;
-
-    // Quick sell modal state
-    const [sellModal, setSellModal] = useState({ open: false, drug: null, quantity: "" });
+    const [expandedBrands, setExpandedBrands] = useState({});
 
     const fetchStock = async () => {
         setLoading(true);
         setError("");
-
         try {
             const data = await apiGet("/stock/");
-            // Filter out expired drugs
             const today = new Date();
-            const nonExpired = data.filter((drug) => {
-                if (!drug.expiry_date) return true;
-                return new Date(drug.expiry_date) >= today;
-            });
-            setStocks(nonExpired || []);
-            setFilteredStocks(nonExpired || []);
+
+            const activeItems = data.filter(d =>
+                !d.batch_number.startsWith("PLACEHOLDER-") &&
+                new Date(d.expiry_date) >= today
+            );
+
+            const groups = activeItems.reduce((acc, item) => {
+                const brand = item.brand_name;
+                if (!acc[brand]) {
+                    acc[brand] = {
+                        brand_name: brand,
+                        total_quantity: 0,
+                        is_controlled: false,
+                        max_reorder_level: 0,
+                        batches: []
+                    };
+                }
+                acc[brand].total_quantity += item.quantity;
+                acc[brand].batches.push(item);
+                if (item.reorder_level > acc[brand].max_reorder_level) {
+                    acc[brand].max_reorder_level = item.reorder_level;
+                }
+                if (item.is_controlled) acc[brand].is_controlled = true;
+                return acc;
+            }, {});
+
+            setGroupedStocks(groups);
         } catch (err) {
-            console.error("Failed to load stock:", err);
-            setError(err.response?.data?.detail || err.message || "Failed to load stock list");
+            setError("Failed to load stock list.");
         } finally {
             setLoading(false);
         }
     };
 
-    useEffect(() => {
-        fetchStock();
-    }, [refreshKey]);
+    useEffect(() => { fetchStock(); }, [refreshKey]);
 
-    // Search & filter
-    useEffect(() => {
-        let result = [...stocks];
-
-        if (searchTerm.trim()) {
-            const term = searchTerm.toLowerCase();
-            result = result.filter(
-                (drug) =>
-                    drug.name.toLowerCase().includes(term) ||
-                    drug.batch_number.toLowerCase().includes(term)
-            );
-        }
-
-        // Apply sorting
-        if (sortConfig.key) {
-            result.sort((a, b) => {
-                if (a[sortConfig.key] < b[sortConfig.key]) {
-                    return sortConfig.direction === "asc" ? -1 : 1;
-                }
-                if (a[sortConfig.key] > b[sortConfig.key]) {
-                    return sortConfig.direction === "asc" ? 1 : -1;
-                }
-                return 0;
-            });
-        }
-
-        setFilteredStocks(result);
-        setCurrentPage(1); // Reset to first page on filter/sort
-    }, [searchTerm, stocks, sortConfig]);
-
-    const handleSort = (key) => {
-        let direction = "asc";
-        if (sortConfig.key === key && sortConfig.direction === "asc") {
-            direction = "desc";
-        }
-        setSortConfig({ key, direction });
+    const toggleExpand = (brand) => {
+        setExpandedBrands(prev => ({ ...prev, [brand]: !prev[brand] }));
     };
 
-    const handleRefresh = () => {
-        setRefreshKey((prev) => prev + 1);
-    };
-
-    // Pagination
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentItems = filteredStocks.slice(indexOfFirstItem, indexOfLastItem);
-    const totalPages = Math.ceil(filteredStocks.length / itemsPerPage);
-
-    const paginate = (pageNumber) => setCurrentPage(pageNumber);
-
-    // Quick Sell
-    const openSellModal = (drug) => {
-        setSellModal({ open: true, drug, quantity: "" });
-    };
-
-    const handleSell = async (e) => {
-        e.preventDefault();
-        const qty = Number(sellModal.quantity);
-        if (!qty || qty <= 0 || qty > sellModal.drug.quantity) {
-            setError("Invalid quantity");
-            return;
-        }
-
-        try {
-            await apiPost("/stock/sell", {
-                batch_number: sellModal.drug.batch_number,
-                quantity: qty,
-            });
-            setSellModal({ open: false, drug: null, quantity: "" });
-            handleRefresh(); // Refresh stock after sell
-        } catch (err) {
-            setError(err.response?.data?.detail || "Failed to sell stock");
-        }
-    };
+    const filteredBrandNames = Object.keys(groupedStocks).filter(name =>
+        name.toLowerCase().includes(searchTerm.toLowerCase())
+    ).sort();
 
     return (
-        <div style={{ maxWidth: "1400px", margin: "2rem auto", padding: "1rem" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-                <h2>Current Stock List (Non-Expired)</h2>
-                <button
-                    onClick={handleRefresh}
-                    disabled={loading}
-                    style={{
-                        padding: "0.6rem 1.2rem",
-                        background: loading ? "#6c757d" : "#28a745",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "4px",
-                        cursor: loading ? "not-allowed" : "pointer",
-                    }}
-                >
-                    {loading ? "Refreshing..." : "Refresh"}
-                </button>
-            </div>
+        <div style={{ maxWidth: "1300px", margin: "2rem auto", padding: "1.5rem", fontFamily: 'sans-serif' }}>
 
-            {/* Search */}
-            <input
-                type="text"
-                placeholder="Search by name or batch..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                style={{
-                    width: "100%",
-                    padding: "0.6rem",
-                    marginBottom: "1rem",
-                    border: "1px solid #ccc",
-                    borderRadius: "4px",
-                }}
-            />
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
+                <div>
+                    <h2 style={{ margin: 0 }}>Pharmacy Inventory</h2>
+                    <p style={{ color: '#718096', fontSize: '14px' }}>Real-time Stock Levels • Kenya Shillings (KES)</p>
+                </div>
+                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                    {/* Updated Navigation Links */}
+                    <Link to="/manage/generics" style={secondaryLinkStyle}>Generics</Link>
+                    <Link to="/manage/brands" style={secondaryLinkStyle}>Branded Drugs</Link>
+                    <Link to="/manage/suppliers" style={secondaryLinkStyle}>Suppliers</Link>
+                    <Link to="/add-stock" style={secondaryLinkStyle}>Add Stock</Link>
 
-            {error && <p style={{ color: "red", fontWeight: "bold", marginBottom: "1rem" }}>{error}</p>}
-
-            {loading ? (
-                <p>Loading stock...</p>
-            ) : filteredStocks.length === 0 ? (
-                <p style={{ color: "#666" }}>No non-expired stock found.</p>
-            ) : (
-                <>
-                    <div style={{ overflowX: "auto", border: "1px solid #dee2e6", borderRadius: "4px" }}>
-                        <table style={{ width: "100%", borderCollapse: "collapse", background: "white" }}>
-                            <thead>
-                                <tr style={{ background: "#f8f9fa" }}>
-                                    <th style={{ padding: "0.8rem", cursor: "pointer" }} onClick={() => handleSort("name")}>
-                                        Medicine {sortConfig.key === "name" && (sortConfig.direction === "asc" ? "↑" : "↓")}
-                                    </th>
-                                    <th style={{ padding: "0.8rem" }}>Batch</th>
-                                    <th style={{ padding: "0.8rem", cursor: "pointer" }} onClick={() => handleSort("expiry_date")}>
-                                        Expiry Date {sortConfig.key === "expiry_date" && (sortConfig.direction === "asc" ? "↑" : "↓")}
-                                    </th>
-                                    <th style={{ padding: "0.8rem", cursor: "pointer" }} onClick={() => handleSort("quantity")}>
-                                        Quantity {sortConfig.key === "quantity" && (sortConfig.direction === "asc" ? "↑" : "↓")}
-                                    </th>
-                                    <th style={{ padding: "0.8rem" }}>Unit Price (KES)</th>
-                                    <th style={{ padding: "0.8rem" }}>Status</th>
-                                    <th style={{ padding: "0.8rem" }}>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {currentItems.map((drug) => (
-                                    <tr key={drug.batch_number} style={{ borderBottom: "1px solid #eee" }}>
-                                        <td style={{ padding: "0.8rem" }}>{drug.name}</td>
-                                        <td style={{ padding: "0.8rem" }}>{drug.batch_number}</td>
-                                        <td style={{ padding: "0.8rem" }}>{drug.expiry_date}</td>
-                                        <td style={{ padding: "0.8rem" }}>{drug.quantity}</td>
-                                        <td style={{ padding: "0.8rem" }}>{drug.unit_price.toFixed(2)}</td>
-                                        <td style={{ padding: "0.8rem" }}>
-                                            {drug.is_controlled ? (
-                                                <span style={{ color: "#dc3545", fontWeight: "bold" }}>Controlled</span>
-                                            ) : (
-                                                "Regular"
-                                            )}
-                                        </td>
-                                        <td style={{ padding: "0.8rem" }}>
-                                            <button
-                                                onClick={() => openSellModal(drug)}
-                                                style={{
-                                                    padding: "0.4rem 0.8rem",
-                                                    background: "#007bff",
-                                                    color: "white",
-                                                    border: "none",
-                                                    borderRadius: "4px",
-                                                    cursor: "pointer",
-                                                }}
-                                            >
-                                                Sell
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {/* Pagination */}
-                    {totalPages > 1 && (
-                        <div style={{ marginTop: "1rem", display: "flex", justifyContent: "center", gap: "0.5rem" }}>
-                            <button
-                                onClick={() => paginate(currentPage - 1)}
-                                disabled={currentPage === 1}
-                                style={{ padding: "0.5rem 1rem", cursor: currentPage === 1 ? "not-allowed" : "pointer" }}
-                            >
-                                Previous
-                            </button>
-                            <span style={{ padding: "0.5rem 1rem" }}>
-                                Page {currentPage} of {totalPages}
-                            </span>
-                            <button
-                                onClick={() => paginate(currentPage + 1)}
-                                disabled={currentPage === totalPages}
-                                style={{ padding: "0.5rem 1rem", cursor: currentPage === totalPages ? "not-allowed" : "pointer" }}
-                            >
-                                Next
-                            </button>
-                        </div>
-                    )}
-                </>
-            )}
-
-            {/* Quick Sell Modal */}
-            {sellModal.open && (
-                <div
-                    style={{
-                        position: "fixed",
-                        top: 0,
-                        left: 0,
-                        width: "100%",
-                        height: "100%",
-                        background: "rgba(0,0,0,0.5)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        zIndex: 1000,
-                    }}
-                >
-                    <div
+                    {/* Existing Controls */}
+                    <Link
+                        to="/sell-stock"
                         style={{
-                            background: "white",
-                            padding: "2rem",
-                            borderRadius: "8px",
-                            width: "400px",
-                            maxWidth: "90%",
+                            textDecoration: 'none',
+                            padding: '10px 20px',
+                            background: '#38a169',
+                            color: 'white',
+                            borderRadius: '6px',
+                            fontWeight: 'bold',
+                            display: 'inline-block'
                         }}
                     >
-                        <h3>Sell {sellModal.drug.name} (Batch: {sellModal.drug.batch_number})</h3>
-                        <p>Available: {sellModal.drug.quantity}</p>
-
-                        <form onSubmit={handleSell}>
-                            <label>
-                                Quantity to sell:
-                                <input
-                                    type="number"
-                                    min="1"
-                                    max={sellModal.drug.quantity}
-                                    value={sellModal.quantity}
-                                    onChange={(e) => setSellModal({ ...sellModal, quantity: e.target.value })}
-                                    style={{ width: "100%", padding: "0.5rem", margin: "0.5rem 0" }}
-                                    required
-                                />
-                            </label>
-
-                            <div style={{ marginTop: "1rem", display: "flex", gap: "1rem" }}>
-                                <button
-                                    type="submit"
-                                    style={{ padding: "0.6rem 1.2rem", background: "#28a745", color: "white", border: "none", borderRadius: "4px" }}
-                                >
-                                    Confirm Sell
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setSellModal({ open: false, drug: null, quantity: "" })}
-                                    style={{ padding: "0.6rem 1.2rem", background: "#dc3545", color: "white", border: "none", borderRadius: "4px" }}
-                                >
-                                    Cancel
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+                        + New Sale
+                    </Link>
+                    <button
+                        onClick={() => setRefreshKey(k => k + 1)}
+                        style={{ padding: '10px 20px', background: '#3182ce', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+                    >
+                        {loading ? "Syncing..." : "Sync Stock"}
+                    </button>
                 </div>
-            )}
+            </div>
+
+            <input
+                type="text"
+                placeholder="Search by brand name..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{ width: "100%", padding: "14px", marginBottom: "20px", borderRadius: "10px", border: "1px solid #cbd5e0", fontSize: '16px' }}
+            />
+
+            {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
+
+            <div style={{ boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', borderRadius: '12px', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", background: "white" }}>
+                    <thead style={{ background: "#edf2f7" }}>
+                        <tr style={{ textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>
+                            <th style={{ padding: "16px 24px" }}>Brand & Batch</th>
+                            <th style={{ padding: "16px" }}>Unit Price</th>
+                            <th style={{ padding: "16px" }}>Total Quantity</th>
+                            <th style={{ padding: "16px" }}>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {filteredBrandNames.length > 0 ? (
+                            filteredBrandNames.map(brandName => {
+                                const group = groupedStocks[brandName];
+                                const isExpanded = expandedBrands[brandName];
+                                const isLowStock = group.total_quantity <= group.max_reorder_level;
+
+                                return (
+                                    <React.Fragment key={brandName}>
+                                        <tr
+                                            onClick={() => toggleExpand(brandName)}
+                                            style={{ borderTop: "1px solid #e2e8f0", cursor: 'pointer', background: isExpanded ? '#f7fafc' : 'white' }}
+                                        >
+                                            <td style={{ padding: "18px 24px", fontWeight: "700", color: '#2d3748' }}>
+                                                <span style={{ marginRight: '12px', color: '#a0aec0' }}>{isExpanded ? "▼" : "▶"}</span>
+                                                {brandName}
+                                                {group.is_controlled && <span style={{ marginLeft: '10px', background: '#fed7d7', color: '#9b2c2c', padding: '2px 8px', borderRadius: '4px', fontSize: '10px' }}>DDA</span>}
+                                            </td>
+                                            <td style={{ padding: "18px", color: '#718096', fontSize: '13px' }}>
+                                                Mixed Batches
+                                            </td>
+                                            <td style={{ padding: "18px", fontWeight: '600' }}>
+                                                {group.total_quantity} units
+                                                {isLowStock && <span style={{ marginLeft: '8px', color: '#dd6b20', fontSize: '10px', background: '#fffaf0', border: '1px solid #fbd38d', padding: '2px 4px', borderRadius: '3px' }}>LOW</span>}
+                                            </td>
+                                            <td style={{ padding: "18px", fontSize: '13px', color: '#a0aec0' }}>{group.batches.length} active batches</td>
+                                        </tr>
+
+                                        {isExpanded && group.batches.map(batch => (
+                                            <tr key={batch.id} style={{ background: "#ffffff", borderBottom: '1px solid #edf2f7' }}>
+                                                <td style={{ padding: "12px 12px 12px 60px", fontSize: '14px', color: '#4a5568' }}>
+                                                    Batch: {batch.batch_number} <br />
+                                                    <small style={{ color: '#a0aec0' }}>Expires: {batch.expiry_date}</small>
+                                                </td>
+                                                <td style={{ padding: "12px", fontSize: '14px', fontWeight: 'bold' }}>
+                                                    KES {batch.unit_price.toLocaleString()}
+                                                </td>
+                                                <td style={{ padding: "12px", fontSize: '14px' }}>{batch.quantity} available</td>
+                                                <td style={{ padding: "12px" }}>
+                                                    {batch.quantity > 0 ? (
+                                                        <span style={{ color: '#38a169', fontSize: '12px', fontWeight: 'bold' }}>IN STOCK</span>
+                                                    ) : (
+                                                        <span style={{ color: '#e53e3e', fontSize: '12px', fontWeight: 'bold' }}>OUT OF STOCK</span>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </React.Fragment>
+                                )
+                            })
+                        ) : (
+                            <tr>
+                                <td colSpan="4" style={{ padding: '30px', textAlign: 'center', color: '#a0aec0' }}>
+                                    {loading ? "Loading stock..." : "No items found."}
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 }
+
+const secondaryLinkStyle = {
+    textDecoration: 'none',
+    padding: '10px 15px',
+    background: '#edf2f7',
+    color: '#4a5568',
+    borderRadius: '6px',
+    fontWeight: '600',
+    fontSize: '14px',
+    border: '1px solid #cbd5e0',
+    display: 'inline-flex',
+    alignItems: 'center'
+};
 
 export default ListStock;

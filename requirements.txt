@@ -7,7 +7,11 @@ alembic
 passlib[argon2]
 python-jose[cryptography] 
 fastapi-users
+openpyxl
+pandas
 psycopg2-binary
 python-dotenv
 httpx
 requests
+reportlab
+structlog

@@ -1,12 +1,15 @@
-// src/pages/Alerts.jsx
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { apiGet } from "../api/api";
 
 function Alerts() {
+    const navigate = useNavigate();
+    const userRole = localStorage.getItem("user_role");
+
     const [alerts, setAlerts] = useState({
         near_expiry: [],
         low_stock: [],
-        controlled_drugs_attention: [],
+        controlled_attention: [],
         note: "",
     });
     const [loading, setLoading] = useState(true);
@@ -16,16 +19,12 @@ function Alerts() {
     const fetchAlerts = async () => {
         setLoading(true);
         setError("");
-
         try {
-            const data = await apiGet("/alerts/alerts/", {
-                params: { days: 30, low_stock_threshold: 10 },
-            });
+            const data = await apiGet("/alerts/");
             setAlerts(data);
         } catch (err) {
             console.error("Failed to load alerts:", err);
-            const errMsg = err.response?.data?.detail || err.message || "Failed to load alerts";
-            setError(errMsg);
+            setError(err.response?.data?.detail || "System Error: Check backend logs for Product/Drug join errors.");
         } finally {
             setLoading(false);
         }
@@ -35,146 +34,146 @@ function Alerts() {
         fetchAlerts();
     }, [refreshKey]);
 
-    const handleRefresh = () => {
-        setRefreshKey((prev) => prev + 1);
+    const calculateDaysLeft = (dateString) => {
+        const diff = new Date(dateString) - new Date();
+        return Math.ceil(diff / (1000 * 60 * 60 * 24));
     };
 
     return (
-        <div style={{ maxWidth: "1400px", margin: "2rem auto", padding: "1rem" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-                <h2>Pharmacy Alerts</h2>
-                <button
-                    onClick={handleRefresh}
-                    disabled={loading}
-                    style={{
-                        padding: "0.6rem 1.2rem",
-                        background: loading ? "#6c757d" : "#28a745",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "4px",
-                        cursor: loading ? "not-allowed" : "pointer",
-                    }}
-                >
-                    {loading ? "Refreshing..." : "Refresh Alerts"}
-                </button>
+        <div style={{ maxWidth: "1400px", margin: "2rem auto", padding: "1.5rem", fontFamily: 'Inter, system-ui, sans-serif' }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", flexWrap: "wrap", gap: "10px" }}>
+                <div>
+                    <h2 style={{ margin: 0, color: '#1a202c' }}>Pharmacy Intelligence Alerts</h2>
+                    {alerts.note && <p style={{ margin: '5px 0 0 0', color: "#718096", fontSize: '14px' }}>{alerts.note}</p>}
+                </div>
+
+                <div style={{ display: "flex", gap: "12px" }}>
+                    {userRole === "admin" && (
+                        <button
+                            onClick={() => navigate("/checklist")}
+                            style={{ padding: "0.8rem 1.5rem", background: "white", color: "#2d3748", border: "1px solid #cbd5e0", borderRadius: "6px", cursor: "pointer", fontWeight: '600' }}
+                        >
+                            📋 Verify Physical Stock
+                        </button>
+                    )}
+
+                    <button
+                        onClick={() => setRefreshKey(k => k + 1)}
+                        disabled={loading}
+                        style={{ padding: "0.8rem 1.5rem", background: loading ? "#cbd5e0" : "#3182ce", color: "white", border: "none", borderRadius: "6px", cursor: loading ? "not-allowed" : "pointer", fontWeight: '600' }}
+                    >
+                        {loading ? "Scanning Inventory..." : "Refresh Alerts"}
+                    </button>
+                </div>
             </div>
 
             {error && (
-                <p style={{ color: "red", fontWeight: "bold", marginBottom: "1rem" }}>{error}</p>
+                <div style={{ padding: '1rem', background: '#fff5f5', border: '1px solid #feb7b7', color: '#c53030', borderRadius: '6px', marginBottom: '1.5rem' }}>
+                    <strong>Connection Error:</strong> {error}
+                </div>
             )}
 
-            {loading ? (
-                <p style={{ color: "#666" }}>Loading alerts...</p>
-            ) : (
+            {!loading && (
                 <>
-                    {/* Note from backend */}
-                    {alerts.note && (
-                        <p style={{ color: "#555", fontStyle: "italic", marginBottom: "1.5rem" }}>
-                            {alerts.note}
-                        </p>
-                    )}
+                    <AlertSection
+                        title="Near Expiry Risks"
+                        color="#e67e22"
+                        data={alerts.near_expiry}
+                        type="expiry"
+                        calcDays={calculateDaysLeft}
+                        emptyMessage="All drugs in pharmacy are not expiring soon."
+                    />
 
-                    {/* Near Expiry */}
-                    <section style={{ marginBottom: "2rem" }}>
-                        <h3 style={{ color: "#e67e22" }}>Near Expiry (within 30 days)</h3>
-                        {alerts.near_expiry.length === 0 ? (
-                            <p style={{ color: "#666" }}>No drugs nearing expiry.</p>
-                        ) : (
-                            <div style={{ overflowX: "auto", border: "1px solid #dee2e6", borderRadius: "4px" }}>
-                                <table style={{ width: "100%", borderCollapse: "collapse", background: "white" }}>
-                                    <thead>
-                                        <tr style={{ background: "#fff3e0" }}>
-                                            <th style={{ padding: "0.8rem" }}>Medicine</th>
-                                            <th style={{ padding: "0.8rem" }}>Batch</th>
-                                            <th style={{ padding: "0.8rem" }}>Expiry Date</th>
-                                            <th style={{ padding: "0.8rem" }}>Quantity</th>
-                                            <th style={{ padding: "0.8rem" }}>Unit Price (KES)</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {alerts.near_expiry.map((drug, index) => (
-                                            <tr key={index} style={{ borderBottom: "1px solid #eee" }}>
-                                                <td style={{ padding: "0.8rem" }}>{drug.name}</td>
-                                                <td style={{ padding: "0.8rem" }}>{drug.batch_number}</td>
-                                                <td style={{ padding: "0.8rem", color: "#e67e22" }}>{drug.expiry_date}</td>
-                                                <td style={{ padding: "0.8rem" }}>{drug.quantity}</td>
-                                                <td style={{ padding: "0.8rem" }}>{drug.unit_price.toFixed(2)}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
-                    </section>
+                    <AlertSection
+                        title="Stock Replenishment Needed"
+                        color="#3182ce"
+                        data={alerts.low_stock}
+                        type="stock"
+                        emptyMessage="All stock levels are currently above reorder thresholds."
+                    />
 
-                    {/* Low Stock */}
-                    <section style={{ marginBottom: "2rem" }}>
-                        <h3 style={{ color: "#f1c40f" }}>Low Stock</h3>
-                        {alerts.low_stock.length === 0 ? (
-                            <p style={{ color: "#666" }}>No low stock items.</p>
-                        ) : (
-                            <div style={{ overflowX: "auto", border: "1px solid #dee2e6", borderRadius: "4px" }}>
-                                <table style={{ width: "100%", borderCollapse: "collapse", background: "white" }}>
-                                    <thead>
-                                        <tr style={{ background: "#fff9e6" }}>
-                                            <th style={{ padding: "0.8rem" }}>Medicine</th>
-                                            <th style={{ padding: "0.8rem" }}>Batch</th>
-                                            <th style={{ padding: "0.8rem" }}>Expiry Date</th>
-                                            <th style={{ padding: "0.8rem" }}>Quantity</th>
-                                            <th style={{ padding: "0.8rem" }}>Unit Price (KES)</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {alerts.low_stock.map((drug, index) => (
-                                            <tr key={index} style={{ borderBottom: "1px solid #eee" }}>
-                                                <td style={{ padding: "0.8rem" }}>{drug.name}</td>
-                                                <td style={{ padding: "0.8rem" }}>{drug.batch_number}</td>
-                                                <td style={{ padding: "0.8rem" }}>{drug.expiry_date}</td>
-                                                <td style={{ padding: "0.8rem", color: "#e67e22" }}>{drug.quantity}</td>
-                                                <td style={{ padding: "0.8rem" }}>{drug.unit_price.toFixed(2)}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
-                    </section>
-
-                    {/* Controlled Drugs Attention */}
-                    <section>
-                        <h3 style={{ color: "#c0392b" }}>Controlled Drugs Requiring Attention</h3>
-                        {alerts.controlled_drugs_attention.length === 0 ? (
-                            <p style={{ color: "#666" }}>No controlled drugs in alert categories.</p>
-                        ) : (
-                            <div style={{ overflowX: "auto", border: "1px solid #dee2e6", borderRadius: "4px" }}>
-                                <table style={{ width: "100%", borderCollapse: "collapse", background: "white" }}>
-                                    <thead>
-                                        <tr style={{ background: "#ffebee" }}>
-                                            <th style={{ padding: "0.8rem" }}>Medicine</th>
-                                            <th style={{ padding: "0.8rem" }}>Batch</th>
-                                            <th style={{ padding: "0.8rem" }}>Expiry Date</th>
-                                            <th style={{ padding: "0.8rem" }}>Quantity</th>
-                                            <th style={{ padding: "0.8rem" }}>Unit Price (KES)</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {alerts.controlled_drugs_attention.map((drug, index) => (
-                                            <tr key={index} style={{ borderBottom: "1px solid #eee" }}>
-                                                <td style={{ padding: "0.8rem" }}>{drug.name}</td>
-                                                <td style={{ padding: "0.8rem" }}>{drug.batch_number}</td>
-                                                <td style={{ padding: "0.8rem" }}>{drug.expiry_date}</td>
-                                                <td style={{ padding: "0.8rem" }}>{drug.quantity}</td>
-                                                <td style={{ padding: "0.8rem" }}>{drug.unit_price.toFixed(2)}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
-                    </section>
+                    <AlertSection
+                        title="Controlled Substances (DDA Oversight)"
+                        color="#c53030"
+                        data={alerts.controlled_attention}
+                        type="controlled"
+                        calcDays={calculateDaysLeft}
+                        emptyMessage="No controlled drugs currently in stock."
+                    />
                 </>
             )}
         </div>
+    );
+}
+
+function AlertSection({ title, color, data, type, calcDays, emptyMessage }) {
+    return (
+        <section style={{ marginBottom: "3rem" }}>
+            <h3 style={{ color, borderLeft: `4px solid ${color}`, paddingLeft: '12px', marginBottom: '1rem' }}>{title}</h3>
+            {data.length === 0 ? (
+                <div style={{ padding: '2rem', background: '#f8fafc', borderRadius: '8px', border: '1px dashed #cbd5e0', color: '#718096', textAlign: 'center' }}>
+                    {emptyMessage}
+                </div>
+            ) : (
+                <div style={{ overflowX: "auto", boxShadow: "0 1px 3px rgba(0,0,0,0.1)", borderRadius: "8px" }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", background: "white" }}>
+                        <thead>
+                            <tr style={{ background: "#f7fafc", textAlign: 'left' }}>
+                                <th style={{ padding: "1rem" }}>Brand Name</th>
+                                <th style={{ padding: "1rem" }}>Batch</th>
+                                <th style={{ padding: "1rem" }}>{type === 'stock' ? 'Quantity' : 'Expiry Date'}</th>
+                                <th style={{ padding: "1rem" }}>Status</th>
+                                <th style={{ padding: "1rem" }}>Unit Price</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {data.map((drug) => {
+                                const daysLeft = calcDays ? calcDays(drug.expiry_date) : null;
+                                let badgeLabel = "";
+                                let badgeColor = { bg: "#ebf8ff", text: "#2b6cb0" };
+
+                                if (type === 'expiry') {
+                                    badgeLabel = daysLeft <= 0 ? "EXPIRED" : `${daysLeft} Days Left`;
+                                    if (daysLeft < 30) badgeColor = { bg: "#fff5f5", text: "#c53030" };
+                                } else if (type === 'stock') {
+                                    badgeLabel = `Below Reorder (${drug.reorder_level})`;
+                                    badgeColor = { bg: "#fffaf0", text: "#dd6b20" };
+                                } else if (type === 'controlled') {
+                                    badgeLabel = "DDA MONITOR";
+                                    badgeColor = { bg: "#fff5f5", text: "#c53030" };
+                                }
+
+                                return (
+                                    <tr key={drug.id} style={{ borderBottom: "1px solid #edf2f7" }}>
+                                        <td style={{ padding: "1rem", fontWeight: "600" }}>{drug.brand_name}</td>
+                                        <td style={{ padding: "1rem" }}>{drug.batch_number}</td>
+                                        <td style={{ padding: "1rem" }}>
+                                            {type === 'stock' ? `${drug.quantity} units` : drug.expiry_date}
+                                        </td>
+                                        <td style={{ padding: "1rem" }}>
+                                            <span style={{
+                                                padding: '4px 10px',
+                                                borderRadius: '20px',
+                                                fontSize: '11px',
+                                                fontWeight: 'bold',
+                                                background: badgeColor.bg,
+                                                color: badgeColor.text,
+                                                border: type === 'controlled' ? '1px solid #feb2b2' : 'none'
+                                            }}>
+                                                {badgeLabel}
+                                            </span>
+                                        </td>
+                                        <td style={{ padding: "1rem" }}>
+                                            KES {(drug.unit_price || 0).toFixed(2)}
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+        </section>
     );
 }
 

@@ -1,6 +1,7 @@
-# app/auth.py
+# app/utils/jwt.py
 from datetime import datetime, timedelta, timezone
 from typing import Optional
+import bcrypt
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -14,22 +15,43 @@ from app.models.user import User
 # -------------------------
 # Config
 # -------------------------
-SECRET_KEY = "replace-this-with-a-strong-secret"
+SECRET_KEY = "+e6k60p6$cobkz+&o8igjy$k9!c@oixbnauuiqko0"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 1 day
 
 # -------------------------
-# Password hashing
+# Hashing Contexts
 # -------------------------
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
+
+# --- Password Helpers (Argon2) ---
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verifies a plain password against an Argon2 hash."""
     return pwd_context.verify(plain_password, hashed_password)
 
 
 def get_password_hash(password: str) -> str:
+    """Generates an Argon2 hash from a plain password."""
     return pwd_context.hash(password)
+
+# --- PIN Helpers (Raw Bcrypt) ---
+
+
+def get_pin_hash(pin: str) -> str:
+    """Generates a Bcrypt hash using the raw library for frontend compatibility."""
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(pin.encode('utf-8'), salt)
+    return hashed.decode('utf-8')
+
+
+def verify_pin(plain_pin: str, hashed_pin: str) -> bool:
+    """Verifies a 4-digit PIN against a Bcrypt hash."""
+    try:
+        return bcrypt.checkpw(plain_pin.encode('utf-8'), hashed_pin.encode('utf-8'))
+    except Exception:
+        return False
 
 # -------------------------
 # Database dependency
@@ -47,7 +69,7 @@ def get_db():
 # -------------------------
 # OAuth2 scheme
 # -------------------------
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 # -------------------------
 # JWT helpers
@@ -104,7 +126,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     return user
 
 # -------------------------
-# Example: login endpoint
+# Login helper
 # -------------------------
 
 
@@ -113,5 +135,6 @@ def login_user(db: Session, username: str, password: str) -> str:
     if not user:
         raise HTTPException(
             status_code=401, detail="Incorrect username or password")
-    access_token = create_access_token(data={"sub": user.username})
+    access_token = create_access_token(
+        data={"sub": user.username, "id": user.id})
     return access_token

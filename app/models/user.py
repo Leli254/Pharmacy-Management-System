@@ -8,8 +8,11 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True, nullable=False)
-    role = Column(String, default="staff")  # e.g., manager, dispenser
+    role = Column(String, default="staff")  # e.g., admin, staff
     full_name = Column(String, nullable=True)
     hashed_password = Column(String, nullable=False)
-    email = Column(String, unique=True, index=True, nullable=False)
     is_active = Column(Boolean, default=True)
+
+    # Simple Recovery Field
+    # Stores a 4-digit PIN hashed using Bcrypt for frontend compatibility
+    recovery_pin_hash = Column(String, nullable=False)

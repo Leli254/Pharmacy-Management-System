@@ -25,3 +25,11 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
     return user
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """
+    Compares a plain text password with a hash.
+    Returns True if they match, False otherwise.
+    """
+    return pwd_context.verify(plain_password, hashed_password)

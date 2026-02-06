@@ -1,4 +1,3 @@
-// src/api/api.js
 import axios from "axios";
 
 const api = axios.create({
@@ -33,7 +32,6 @@ api.interceptors.response.use(
             if (status === 401) {
                 localStorage.removeItem("access_token");
                 console.warn("Unauthorized - token removed");
-                // Optional: window.location.href = "/login";
             }
 
             return Promise.reject({
@@ -60,26 +58,44 @@ api.interceptors.response.use(
  * @param {string} url - endpoint path (without /api prefix)
  * @param {object} [data] - request body
  * @param {object} [params] - query parameters
+ * @param {object} [config] - extra axios config (like responseType: 'blob')
  * @returns {Promise<any>} response data
  */
-export async function apiRequest(method, url, data = null, params = null) {
-    // eslint-disable-next-line no-useless-catch
+export async function apiRequest(method, url, data = null, params = null, config = {}) {
     try {
         const response = await api({
             method,
             url,
             data,
             params,
+            ...config, // This allows passing { responseType: 'blob' }
         });
+
+        // Log the response type for debugging
+        if (config.responseType === 'blob') {
+            console.log(`[API] Blob received from ${url}, size: ${response.data.size} bytes`);
+        }
+
         return response.data;
     } catch (error) {
-        throw error; // Let components handle errors
+        // Log errors for easier tracing
+        console.error(`[API Error] ${method.toUpperCase()} ${url}:`, error.message);
+        throw error;
     }
 }
 
-// Convenience helpers
-export const apiGet = (url, params = null) => apiRequest("get", url, null, params);
-export const apiPost = (url, data = null) => apiRequest("post", url, data);
-export const apiPut = (url, data = null) => apiRequest("put", url, data);
-export const apiDelete = (url, data = null) => apiRequest("delete", url, data);
-export const apiPatch = (url, data = null) => apiRequest("patch", url, data);
+// Convenience helpers updated to accept config
+export const apiGet = (url, params = null, config = {}) =>
+    apiRequest("get", url, null, params, config);
+
+export const apiPost = (url, data = null, config = {}) =>
+    apiRequest("post", url, data, null, config);
+
+export const apiPut = (url, data = null, config = {}) =>
+    apiRequest("put", url, data, null, config);
+
+export const apiDelete = (url, data = null, config = {}) =>
+    apiRequest("delete", url, data, null, config);
+
+export const apiPatch = (url, data = null, config = {}) =>
+    apiRequest("patch", url, data, null, config);
