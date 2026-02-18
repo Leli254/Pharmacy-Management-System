@@ -9,8 +9,17 @@ Designed for pharmacies, with a focus on reliability, performance, and ease of u
 
 ---
 
-## ✨ Features
+## ✨ Key Features
 
+- 🔐 **Secure Access:** Multi-role authentication (Admin, Pharmacist, Tech) using JWT & Argon2 hashing.
+- 📦 **Inventory Intelligence:** Advanced tracking of drugs, batches, and expiry dates.
+- 🚨 **Compliance Alerts:** Real-time notifications for low stock, expiring batches, and DDA thresholds.
+- 📄 **Automated Paperwork:** Instant PDF generation for:
+    - **DDA Registers** (Controlled Drugs)
+    - **Prescription Books**
+    - **Sales Receipts**
+    - **Monthly Analytics Reports**
+- 📴 **Offline-First:** Optimized for local network reliability—works perfectly without an internet connection.
 - 🔐 Secure authentication (JWT-based)
 - 📦 Stock and inventory tracking
 - 🚨 Low-stock alerts
