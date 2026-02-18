@@ -3,6 +3,10 @@
 A modern, offline-first pharmacy inventory management system built with **FastAPI**, **PostgreSQL**, and **React (Vite)**.  
 Designed for pharmacies, with a focus on reliability, performance, and ease of use.
 
+[![Status](https://img.shields.io/badge/Status-Active%20Development-orange.svg)]()
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Docker](https://img.shields.io/badge/Container-Docker-blue.svg)]()
+
 ---
 
 ## ✨ Features
